@@ -1,4 +1,4 @@
-# Kivara
+# Kairavelle
 
 Una maqueta adaptable de una app de outfits para iPad y computadora.
 
