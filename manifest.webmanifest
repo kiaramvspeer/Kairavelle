@@ -1,0 +1,14 @@
+{
+  "name": "Kivara — Tu estilo, a tu manera",
+  "short_name": "Kivara",
+  "description": "Arma outfits con la ropa que ya tienes.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f3ec",
+  "theme_color": "#f7f3ec",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
