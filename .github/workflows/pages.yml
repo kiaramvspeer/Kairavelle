@@ -1,4 +1,4 @@
-name: Publish Kivara
+name: Publish Kairavelle
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Get Kivara files
+      - name: Get Kairavelle files
         uses: actions/checkout@v6
       - name: Prepare Pages
         uses: actions/configure-pages@v5
@@ -29,6 +29,6 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: .
-      - name: Publish Kivara
+      - name: Publish Kairavelle
         id: deployment
         uses: actions/deploy-pages@v4
