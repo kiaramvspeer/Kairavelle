@@ -1,5 +1,5 @@
-const CACHE_NAME = 'kairavelle-shell-v15';
-const APP_FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/kairavelle-inclusive.jpg?v=15', './assets/hero-men-v2.jpg?v=13', './assets/idea-women-casual-v4.jpg?v=15', './assets/idea-women-work-v4.jpg?v=15', './assets/idea-women-weekend-v4.jpg?v=15', './assets/idea-men-casual-v2.jpg?v=13', './assets/idea-men-work-v2.jpg?v=13', './assets/idea-men-weekend-v2.jpg?v=13'];
+const CACHE_NAME = 'kairavelle-shell-v16';
+const APP_FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/kairavelle-inclusive.jpg?v=15', './assets/hero-men-v2.jpg?v=13', './assets/idea-women-casual-v4.jpg?v=15', './assets/idea-women-work-v4.jpg?v=15', './assets/idea-women-weekend-v4.jpg?v=15', './assets/idea-men-casual-v3.jpg?v=16', './assets/idea-men-work-v3.jpg?v=16', './assets/idea-men-weekend-v3.jpg?v=16'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
   self.skipWaiting();
