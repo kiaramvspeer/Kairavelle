@@ -1,5 +1,5 @@
-const CACHE_NAME = 'kairavelle-shell-v98';
-const APP_FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/kairavelle-inclusive.jpg?v=15', './assets/hero-men-v2.jpg?v=13', './assets/idea-women-casual-v4.jpg?v=15', './assets/idea-women-work-v4.jpg?v=15', './assets/idea-women-weekend-v4.jpg?v=15', './assets/idea-men-casual-v3.jpg?v=16', './assets/idea-men-work-v3.jpg?v=16', './assets/idea-men-weekend-v3.jpg?v=16'];
+const CACHE_NAME = 'kairavelle-shell-v99';
+const APP_FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/kairavelle-inclusive.jpg?v=15', './assets/hero-men-v2.jpg?v=13', './assets/idea-women-casual-v4.jpg?v=15', './assets/idea-women-work-v4.jpg?v=15', './assets/idea-women-weekend-v4.jpg?v=15', './assets/idea-men-casual-v3.jpg?v=16', './assets/idea-men-work-v3.jpg?v=16', './assets/idea-men-weekend-v3.jpg?v=16', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
   self.skipWaiting();
@@ -10,7 +10,9 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  if (new URL(event.request.url).origin !== self.location.origin) return;
+  const requestUrl = new URL(event.request.url);
+  const cachedLibrary = APP_FILES.includes(requestUrl.href);
+  if (requestUrl.origin !== self.location.origin && !cachedLibrary) return;
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).catch(() => caches.match('./index.html')));
     return;
