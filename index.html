@@ -105,7 +105,7 @@ function chatInitial(title){return String(title||'✦').trim().charAt(0).toUpper
 function chatRoomsCacheKey(){return 'chat-rooms-'+(window.kairavelleUserId||'')}
 function sharedChatRoomsCacheKey(){return 'chat-rooms-device'}
 async function saveChatRooms(rooms){await saveOfflineCache(chatRoomsCacheKey(),rooms||[]);await saveOfflineCache(sharedChatRoomsCacheKey(),rooms||[])}
-async function readChatRooms(){const own=await readChatRooms();return own?.length?own:((await readOfflineCache(sharedChatRoomsCacheKey()))||own)}
+async function readChatRooms(){const own=await readOfflineCache(chatRoomsCacheKey());return own?.length?own:((await readOfflineCache(sharedChatRoomsCacheKey()))||own)}
 function chatMessagesCacheKey(roomId){return 'chat-messages-'+(window.kairavelleUserId||'')+'-'+roomId}
 function sharedChatMessagesCacheKey(roomId){return 'chat-messages-room-'+roomId}
 async function saveChatHistory(roomId,messages){await saveOfflineCache(chatMessagesCacheKey(roomId),messages||[]);await saveOfflineCache(sharedChatMessagesCacheKey(roomId),messages||[])}
