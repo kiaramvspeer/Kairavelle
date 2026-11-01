@@ -109,7 +109,7 @@ async function readChatRooms(){const own=await readOfflineCache(chatRoomsCacheKe
 function chatMessagesCacheKey(roomId){return 'chat-messages-'+(window.kairavelleUserId||'')+'-'+roomId}
 function sharedChatMessagesCacheKey(roomId){return 'chat-messages-room-'+roomId}
 async function saveChatHistory(roomId,messages){await saveOfflineCache(chatMessagesCacheKey(roomId),messages||[]);await saveOfflineCache(sharedChatMessagesCacheKey(roomId),messages||[])}
-async function readChatHistory(roomId){return(await readOfflineCache(chatMessagesCacheKey(roomId)))||(await readOfflineCache(sharedChatMessagesCacheKey(roomId)))}
+async function readChatHistory(roomId){const own=(await readOfflineCache(chatMessagesCacheKey(roomId)))||[],shared=(await readOfflineCache(sharedChatMessagesCacheKey(roomId)))||[];if(!own.length)return shared;if(!shared.length)return own;return shared.length>=own.length?shared:own}
 const chatMediaCacheName='kairavelle-chat-media-v1';
 function cachedChatMediaRequest(message){return new Request(location.origin+location.pathname+'offline-chat-media/'+encodeURIComponent(String(message.id)))}
 async function onlineChatMediaUrl(message){if(message.gif_url)return message.gif_url;if(!message.media_path||!supabaseClient||!navigator.onLine)return'';try{const {data}=await supabaseClient.storage.from('chat-media').createSignedUrl(message.media_path,3600);return data?.signedUrl||''}catch(_){return''}}
