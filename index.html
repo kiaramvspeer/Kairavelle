@@ -195,8 +195,8 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
       return{item,score:paletteScore+harmonyScore+contextScore(item)-rotationPenalty};
     });
     const best=Math.max(...scored.map(entry=>entry.score));
-    const good=scored.filter(entry=>entry.score===best).map(entry=>entry.item);
-    return good[salt%good.length];
+    const good=scored.filter(entry=>entry.score>=best-6).sort((first,second)=>second.score-first.score).map(entry=>entry.item);
+    return good[Math.abs(salt)%good.length];
   };
   const bottom=candidates.filter(item=>/pantalon|jean|falda|short|enterizo/.test(details(item)));
   const shoes=candidates.filter(item=>/zapato|zapatilla|tenis|sandalia|bota|botin/.test(details(item)));
