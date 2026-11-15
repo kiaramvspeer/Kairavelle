@@ -215,7 +215,8 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
   }else{
     const topWords=details(top);
     const layers=outerLayer.concat(topWords.includes('camisa')?[]:softLayer).filter(item=>safeLayer(item,top)&&!picked.includes(item));
-    const layer=preferredIsLayer&&safeLayer(preferred,top)?preferred:(layers.length?layers[(index+7)%layers.length]:null);
+    const useLayer=preferredIsLayer||((index+layers.length)%3===0);
+    const layer=useLayer?(preferredIsLayer&&safeLayer(preferred,top)?preferred:(layers.length?layers[(index+7)%layers.length]:null)):null;
     if(layer&&!picked.includes(layer))picked.push(layer);
   }
   const scarf=pick(accessory,picked,index+11);if(scarf)picked.push(scarf);
