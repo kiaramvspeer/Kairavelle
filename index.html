@@ -171,7 +171,7 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
   const colorsOf=item=>clean(item.color).split(/[|,]/).map(color=>colorAliases[color]||color).filter(Boolean);
   const neutral=new Set(['negro','blanco','gris','beige','azul','denim','marron']);
   const context=clean(style+' '+occasion+' '+place+' '+month);
-  const weatherScore=item=>{const words=details(item);if(weather==='frio'){if(/abrigo|chaqueta|casaca|cardigan|chompa|sueter|sudadera|bufanda|botin|bota|pantalon|jean/.test(words))return 7;if(/short|sandalia|top/.test(words))return -5}if(weather==='calor'){if(/short|falda|vestido|top|polo|camiseta|camisa|sandalia/.test(words))return 7;if(/abrigo|chaqueta|casaca|cardigan|chompa|sueter|sudadera|bufanda|bota/.test(words))return -7}if(/chaqueta|casaca|cardigan|pantalon|jean|camisa|blusa|zapatilla/.test(words))return 2;return 0};
+  const weatherScore=item=>{const words=details(item);if(weather==='frio'){if(/abrigo|chaqueta|casaca|cardigan|chompa|sueter|sudadera|bufanda|chalina|guante|miton|panti|media|manga larga|botin|bota|pantalon|jean/.test(words))return 8;if(/short|sandalia|top/.test(words))return -6}if(weather==='calor'){if(/short|falda|vestido|top|polo|camiseta|camisa|sandalia/.test(words))return 7;if(/abrigo|chaqueta|casaca|cardigan|chompa|sueter|sudadera|bufanda|chalina|guante|miton|panti|media|bota/.test(words))return -8}if(/chaqueta|casaca|cardigan|pantalon|jean|camisa|blusa|zapatilla/.test(words))return 2;return 0};
   const contextScore=item=>{const words=details(item);let score=0;if(/formal|elegante|trabajo|graduacion|ceremon/.test(context)&&/camisa|blusa|traje|vestido|falda|chaqueta|abrigo|botin|zapato/.test(words))score+=5;if(/fiesta|cumple|cita|patria/.test(context)&&/vestido|falda|blusa|top|chaqueta|botin|taco/.test(words))score+=4;if(/ejercicio|deportivo/.test(context)&&/deport|sudadera|zapatilla|tenis|short/.test(words))score+=6;if(/playa/.test(context)&&/short|vestido|top|sandalia/.test(words))score+=5;if(/casual|urbano|street|casa|viaje|ciudad/.test(context)&&/jean|pantalon|polo|camiseta|chaqueta|zapatilla/.test(words))score+=3;return score};
   const colorsWork=(firstItem,secondItem)=>{
     const firstColors=colorsOf(firstItem),secondColors=colorsOf(secondItem);
@@ -208,7 +208,9 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
   const knitVest=upper.filter(item=>/chaleco/.test(details(item))&&/(calado|punto|tejido)/.test(details(item)));
   const outerLayer=upper.filter(item=>/chaqueta|casaca|cazadora|abrigo|cardigan/.test(details(item)));
   const softLayer=upper.filter(item=>/chompa|sueter|sudadera/.test(details(item)));
-  const accessory=upper.filter(item=>/bufanda|panuelo|corbata/.test(details(item)));
+  const accessory=upper.filter(item=>/bufanda|chalina|panuelo|corbata/.test(details(item)));
+  const winterAccessories=upper.filter(item=>/bufanda|chalina|guante|miton/.test(details(item)));
+  const hosiery=upper.filter(item=>/panti|media/.test(details(item)));
   const preferred=candidates.find(item=>String(item.id)===String(preferredId));
   const preferredIsBottom=preferred&&bottom.includes(preferred),preferredIsShoe=preferred&&shoes.includes(preferred),preferredIsLayer=preferred&&[...outerLayer,...softLayer,...knitVest].includes(preferred),preferredIsUpper=preferred&&upper.includes(preferred)&&!preferredIsLayer;
   const picked=[];
@@ -225,8 +227,14 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
     const layer=useLayer?(preferredIsLayer&&safeLayer(preferred,top)?preferred:(layers.length?layers[(index+7)%layers.length]:null)):null;
     if(layer&&!picked.includes(layer))picked.push(layer);
   }
-  const scarf=pick(accessory,picked,index+11);if(scarf)picked.push(scarf);
-  const shoe=preferredIsShoe?preferred:pick(shoes,picked,index+13);if(shoe&&!picked.includes(shoe))picked.push(shoe);
+  if(weather==='frio'){
+    const skirt=lower&&/falda/.test(details(lower));
+    if(skirt){const tights=pick(hosiery,picked,index+11);if(tights)picked.push(tights)}
+    const warmAccessories=skirt?winterAccessories.filter(item=>!hosiery.includes(item)):winterAccessories;
+    const firstWarm=pick(warmAccessories,picked,index+13);if(firstWarm)picked.push(firstWarm);
+    const secondWarm=pick(warmAccessories,picked,index+19);if(secondWarm&&!picked.includes(secondWarm)&&/guante|miton/.test(details(secondWarm)))picked.push(secondWarm);
+  }else if(weather!=='calor'){const scarf=pick(accessory,picked,index+11);if(scarf)picked.push(scarf)}
+  const shoe=preferredIsShoe?preferred:pick(shoes,picked,index+23);if(shoe&&!picked.includes(shoe))picked.push(shoe);
   if(!bottom.length&&picked.length<2){const extra=pick(upper,picked,index+17);if(extra)picked.push(extra)}
   return picked.map(item=>({id:item.id,name:item.name,category:item.category,color:item.color||'',storage_path:item.storage_path}));
 }
