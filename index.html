@@ -168,12 +168,12 @@ function chooseOutfit(candidates,index,palette=[]){
     const pairs={verde:['rosa','morado','amarillo','azul'],rojo:['rosa','morado','azul'],rosa:['verde','morado','azul','amarillo'],amarillo:['azul','morado','verde'],naranja:['azul','morado','rosa'],morado:['amarillo','rosa','verde','azul'],azul:['rosa','amarillo','naranja','morado','verde']};
     return firstColors.some(first=>secondColors.some(second=>neutral.has(first)||neutral.has(second)||first===second||(pairs[first]||[]).includes(second)||(pairs[second]||[]).includes(first)));
   };
-  const compatibleWith=(item,selected)=>selected.every(other=>colorsWork(item,other));
   const isPatterned=item=>/cuadro|rayas|estamp|print|flor|animal|logo|calado|lentejuela/.test(details(item));
+  const compatibleWith=(item,selected)=>!((isPatterned(item)&&selected.some(isPatterned)))&&selected.every(other=>colorsWork(item,other));
   const safeLayer=(item,baseItem)=>{
     const colors=colorsOf(item);
-    if(isPatterned(item)||!colors.length||colors.includes('otro'))return false;
-    return !baseItem||!isPatterned(baseItem);
+    if(!colors.length||colors.includes('otro'))return false;
+    return !baseItem||(!isPatterned(item)||!isPatterned(baseItem))&&colorsWork(item,baseItem);
   };
   const pick=(list,selected,salt)=>{
     const available=list.filter(item=>!selected.includes(item)&&compatibleWith(item,selected));
