@@ -176,8 +176,9 @@ function chooseOutfit(candidates,index,palette=[]){
   const compatibleWith=(item,selected)=>!((isPatterned(item)&&selected.some(isPatterned)))&&selected.every(other=>colorsWork(item,other));
   const safeLayer=(item,baseItem)=>{
     const colors=colorsOf(item);
-    if(!colors.length)return false;
-    return !baseItem||(!isPatterned(item)||!isPatterned(baseItem))&&colorsWork(item,baseItem);
+    if(!baseItem)return true;
+    if(isPatterned(item)&&isPatterned(baseItem))return false;
+    return !colors.length||colorsWork(item,baseItem);
   };
   const pick=(list,selected,salt)=>{
     const available=list.filter(item=>!selected.includes(item)&&compatibleWith(item,selected));
@@ -210,7 +211,7 @@ function chooseOutfit(candidates,index,palette=[]){
   }else{
     const topWords=details(top);
     const layers=outerLayer.concat(topWords.includes('camisa')?[]:softLayer).filter(item=>safeLayer(item,top));
-    const layer=pick(layers,picked,index+7);
+    const layer=layers.length?layers[(index+7)%layers.length]:null;
     if(layer)picked.push(layer);
   }
   const scarf=pick(accessory,picked,index+11);if(scarf)picked.push(scarf);
