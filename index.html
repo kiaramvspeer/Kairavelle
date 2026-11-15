@@ -226,7 +226,7 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
   return picked.map(item=>({id:item.id,name:item.name,category:item.category,color:item.color||'',storage_path:item.storage_path}));
 }
 function outfitSignature(garments){return garments.map(item=>item.id).sort().join('|')}
-function outfitHistoryStorageKey(){return 'kairavelle-outfit-history-'+(window.kairavelleUserId||'local')}
+function outfitHistoryStorageKey(){const today=new Date(),day=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');return 'kairavelle-outfit-history-'+(window.kairavelleUserId||'local')+'-'+day}
 function savedOutfitSignatures(){try{const history=JSON.parse(localStorage.getItem(outfitHistoryStorageKey())||'[]');return Array.isArray(history)?history.filter(value=>typeof value==='string'):[]}catch(_){return[]}}
 function saveOutfitSignatures(history){try{localStorage.setItem(outfitHistoryStorageKey(),JSON.stringify(history.slice(0,300)))}catch(_){}}
 function renderOutfitItems(garments){return garments.map(item=>'<div class="outfit-real-item"><span>'+uiEscape(item.name)+'</span></div>').join('')}
