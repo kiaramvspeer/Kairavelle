@@ -167,6 +167,12 @@ function chooseOutfit(candidates,index,palette=[]){
     return (pairs[first]||[]).includes(second)||(pairs[second]||[]).includes(first);
   };
   const compatibleWith=(item,selected)=>selected.every(other=>colorsWork(item,other));
+  const isPatterned=item=>/cuadro|rayas|estamp|print|flor|animal|logo|calado|lentejuela/.test(details(item));
+  const safeLayer=(item,baseItem)=>{
+    const color=clean(item.color);
+    if(isPatterned(item)||!color||color==='otro')return false;
+    return !baseItem||!isPatterned(baseItem);
+  };
   const pick=(list,selected,salt)=>{
     const available=list.filter(item=>!selected.includes(item)&&compatibleWith(item,selected));
     if(!available.length)return null;
@@ -197,7 +203,7 @@ function chooseOutfit(candidates,index,palette=[]){
     if(top)picked.unshift(top);
   }else{
     const topWords=details(top);
-    const layers=outerLayer.concat(topWords.includes('camisa')?[]:softLayer);
+    const layers=outerLayer.concat(topWords.includes('camisa')?[]:softLayer).filter(item=>safeLayer(item,top));
     const layer=pick(layers,picked,index+7);
     if(layer)picked.push(layer);
   }
