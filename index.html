@@ -274,6 +274,7 @@ function savedCropCopy(){
 function openSavedGarmentCropper(item,url){
   var copy=savedCropCopy();
   var resetLabels={es:"Restablecer",en:"Reset",ja:"リセット",ko:"초기화",pt:"Redefinir",fr:"Réinitialiser",de:"Zurücksetzen",it:"Ripristina"};
+  var doneLabels={es:"Listo",en:"Done",ja:"完了",ko:"완료",pt:"Concluir",fr:"OK",de:"Fertig",it:"Fine"};
   var gestureLabels={es:"Arrastra para mover · pellizca para acercar",en:"Drag to move · pinch to zoom",ja:"ドラッグで移動・ピンチで拡大",ko:"드래그하여 이동 · 손가락으로 확대",pt:"Arraste para mover · pince para ampliar",fr:"Faites glisser · pincez pour zoomer",de:"Ziehen zum Bewegen · mit zwei Fingern zoomen",it:"Trascina per spostare · pizzica per ingrandire"};
   var lang=window.kivaraLang||"es";
   var modal=document.createElement("div");
@@ -281,7 +282,7 @@ function openSavedGarmentCropper(item,url){
   modal.setAttribute("role","dialog");
   modal.setAttribute("aria-modal","true");
   modal.setAttribute("aria-label",copy.title);
-  modal.innerHTML='<header class="gallery-crop-top"><button type="button" class="gallery-crop-cancel" id="cancelSavedCrop">'+uiEscape(copy.cancel)+'</button><strong>'+uiEscape(copy.title)+'</strong><button type="button" class="gallery-crop-done" id="saveSavedCrop">'+uiEscape(copy.save)+'</button></header>'+
+  modal.innerHTML='<header class="gallery-crop-top"><button type="button" class="gallery-crop-cancel" id="cancelSavedCrop">'+uiEscape(copy.cancel)+'</button><strong>'+uiEscape(copy.title)+'</strong><button type="button" class="gallery-crop-done" id="saveSavedCrop">'+uiEscape(doneLabels[lang]||doneLabels.es)+'</button></header>'+
     '<main class="gallery-crop-stage"><div class="gallery-crop-frame" id="savedCropFrame"><img id="savedCropImage" src="'+uiEscape(url)+'" alt=""><div class="gallery-crop-grid" aria-hidden="true"></div><span class="gallery-crop-hint" id="savedCropHint">'+uiEscape(gestureLabels[lang]||gestureLabels.es)+'</span></div></main>'+
     '<footer class="gallery-crop-bottom"><div class="gallery-crop-zoom"><span aria-hidden="true">−</span><input id="savedCropZoom" aria-label="'+uiEscape(copy.zoom)+'" type="range" min="1" max="3" step="0.01" value="1"><span aria-hidden="true">＋</span></div><div class="gallery-crop-tools"><button type="button" id="savedCropFull">'+uiEscape(copy.full)+'</button><button type="button" class="gallery-crop-reset" id="savedCropReset">'+uiEscape(resetLabels[lang]||resetLabels.es)+'</button></div></footer><p id="savedCropStatus" class="gallery-crop-status"></p>';
   document.body.append(modal);
