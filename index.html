@@ -318,9 +318,15 @@ function openSavedGarmentCropper(item,url){
   }
   function updatePreview(){
     sizeFrame();
+    var swap=state.rotation%180!==0;
+    image.style.position="absolute";
+    image.style.left="50%";
+    image.style.top="50%";
+    image.style.width=swap?frame.clientHeight+"px":"100%";
+    image.style.height=swap?frame.clientWidth+"px":"100%";
     image.style.objectPosition=state.x+"% "+state.y+"%";
-    image.style.transformOrigin=state.x+"% "+state.y+"%";
-    image.style.transform="rotate("+state.rotation+"deg) scale("+state.flip*state.zoom+","+state.zoom+")";
+    image.style.transformOrigin="center";
+    image.style.transform="translate(-50%,-50%) rotate("+state.rotation+"deg) scale("+state.flip*state.zoom+","+state.zoom+")";
     zoomControl.value=String(state.zoom);
   }
   function resetCrop(){state.zoom=1;state.x=50;state.y=50;state.rotation=0;state.flip=1;updatePreview();}
