@@ -242,6 +242,80 @@ function openGarmentEditor(item){
     }catch(error){status.textContent=error.message||"No se pudieron guardar los cambios.";}
   });
 }
+function savedCropCopy(){
+  var lang=window.kivaraLang||"es";
+  var copies={
+    es:{eyebrow:"Mi armario",title:"Recortar foto",help:"Acerca o mueve la fotografía. La prenda seguirá guardada con toda su información.",zoom:"Acercar",horizontal:"Mover horizontalmente",vertical:"Mover arriba o abajo",full:"Usar foto completa",cancel:"Cancelar",save:"Guardar recorte",saving:"Guardando…",saved:"Recorte guardado",offline:"Conéctate a internet para guardar el recorte.",error:"No pudimos guardar el recorte."},
+    en:{eyebrow:"My closet",title:"Crop photo",help:"Zoom or move the photo. The item will keep all its saved information.",zoom:"Zoom",horizontal:"Move horizontally",vertical:"Move up or down",full:"Use full photo",cancel:"Cancel",save:"Save crop",saving:"Saving…",saved:"Crop saved",offline:"Connect to the internet to save the crop.",error:"We couldn't save the crop."},
+    ja:{eyebrow:"クローゼット",title:"写真を切り抜く",help:"写真を拡大・移動できます。服の情報はすべて保存されたままです。",zoom:"拡大",horizontal:"左右に移動",vertical:"上下に移動",full:"写真全体を使う",cancel:"キャンセル",save:"切り抜きを保存",saving:"保存中…",saved:"保存しました",offline:"保存するにはインターネットに接続してください。",error:"切り抜きを保存できませんでした。"},
+    ko:{eyebrow:"내 옷장",title:"사진 자르기",help:"사진을 확대하거나 이동하세요. 옷 정보는 그대로 저장됩니다.",zoom:"확대",horizontal:"좌우로 이동",vertical:"위아래로 이동",full:"전체 사진 사용",cancel:"취소",save:"자르기 저장",saving:"저장 중…",saved:"저장했어요",offline:"자르기를 저장하려면 인터넷에 연결하세요.",error:"자르기를 저장하지 못했어요."},
+    pt:{eyebrow:"Meu guarda-roupa",title:"Recortar foto",help:"Aproxime ou mova a foto. A peça manterá todas as informações salvas.",zoom:"Aproximar",horizontal:"Mover horizontalmente",vertical:"Mover para cima ou para baixo",full:"Usar foto completa",cancel:"Cancelar",save:"Salvar recorte",saving:"Salvando…",saved:"Recorte salvo",offline:"Conecte-se à internet para salvar o recorte.",error:"Não foi possível salvar o recorte."},
+    fr:{eyebrow:"Ma garde-robe",title:"Recadrer la photo",help:"Zoomez ou déplacez la photo. Toutes les informations du vêtement resteront enregistrées.",zoom:"Zoomer",horizontal:"Déplacer horizontalement",vertical:"Déplacer vers le haut ou le bas",full:"Utiliser la photo entière",cancel:"Annuler",save:"Enregistrer le recadrage",saving:"Enregistrement…",saved:"Recadrage enregistré",offline:"Connectez-vous à Internet pour enregistrer le recadrage.",error:"Impossible d’enregistrer le recadrage."},
+    de:{eyebrow:"Mein Kleiderschrank",title:"Foto zuschneiden",help:"Zoome oder verschiebe das Foto. Alle Kleidungsinformationen bleiben gespeichert.",zoom:"Vergrößern",horizontal:"Horizontal verschieben",vertical:"Nach oben oder unten verschieben",full:"Ganzes Foto verwenden",cancel:"Abbrechen",save:"Zuschnitt speichern",saving:"Wird gespeichert…",saved:"Zuschnitt gespeichert",offline:"Verbinde dich mit dem Internet, um den Zuschnitt zu speichern.",error:"Der Zuschnitt konnte nicht gespeichert werden."},
+    it:{eyebrow:"Il mio guardaroba",title:"Ritaglia foto",help:"Ingrandisci o sposta la foto. Tutte le informazioni del capo resteranno salvate.",zoom:"Ingrandisci",horizontal:"Sposta orizzontalmente",vertical:"Sposta su o giù",full:"Usa foto completa",cancel:"Annulla",save:"Salva ritaglio",saving:"Salvataggio…",saved:"Ritaglio salvato",offline:"Connettiti a Internet per salvare il ritaglio.",error:"Non è stato possibile salvare il ritaglio."}
+  };
+  return copies[lang]||copies.es;
+}
+function openSavedGarmentCropper(item,url){
+  var copy=savedCropCopy();
+  var modal=document.createElement("div");
+  modal.className="audience-modal";
+  modal.innerHTML='<div class="audience-card"><p class="eyebrow">'+uiEscape(copy.eyebrow)+'</p><h2>'+uiEscape(copy.title)+'</h2><p>'+uiEscape(copy.help)+'</p>'+
+    '<div class="garment-picker-preview"><img id="savedCropImage" src="'+uiEscape(url)+'" alt=""></div>'+
+    '<div class="garment-crop-controls"><label>'+uiEscape(copy.zoom)+'<input id="savedCropZoom" type="range" min="1" max="2" step="0.05" value="1"></label><label>'+uiEscape(copy.horizontal)+'<input id="savedCropX" type="range" min="0" max="100" value="50"></label><label>'+uiEscape(copy.vertical)+'<input id="savedCropY" type="range" min="0" max="100" value="50"></label></div>'+
+    '<div class="garment-crop-toolbar"><button type="button" class="ghost" id="savedCropFull">'+uiEscape(copy.full)+'</button></div>'+
+    '<div class="audience-actions"><button type="button" class="ghost" id="cancelSavedCrop">'+uiEscape(copy.cancel)+'</button><button type="button" class="primary" id="saveSavedCrop">'+uiEscape(copy.save)+'</button></div><p id="savedCropStatus" class="status"></p></div>';
+  document.body.append(modal);
+  var image=modal.querySelector("#savedCropImage");
+  var zoom=modal.querySelector("#savedCropZoom");
+  var x=modal.querySelector("#savedCropX");
+  var y=modal.querySelector("#savedCropY");
+  var cropActive=false;
+  function updatePreview(){
+    if(!cropActive){image.classList.remove("crop-active");image.style.transform="";image.style.transformOrigin="";image.style.objectPosition="50% 50%";return;}
+    image.classList.add("crop-active");
+    image.style.transform="scale("+Number(zoom.value||1)+")";
+    image.style.transformOrigin=x.value+"% "+y.value+"%";
+    image.style.objectPosition=x.value+"% "+y.value+"%";
+  }
+  [zoom,x,y].forEach(function(control){control.addEventListener("input",function(){cropActive=true;updatePreview();});});
+  modal.querySelector("#savedCropFull").addEventListener("click",function(){cropActive=false;zoom.value="1";x.value="50";y.value="50";updatePreview();});
+  var close=function(){modal.remove();};
+  modal.querySelector("#cancelSavedCrop").addEventListener("click",close);
+  modal.addEventListener("click",function(event){if(event.target===modal)close();});
+  modal.querySelector("#saveSavedCrop").addEventListener("click",async function(){
+    var status=modal.querySelector("#savedCropStatus");
+    if(!cropActive){close();return;}
+    if(!navigator.onLine||String(item.id||"").indexOf("offline-")===0){status.textContent=copy.offline;return;}
+    status.textContent=copy.saving;
+    try{
+      var auth=await supabaseClient.auth.getUser();
+      var user=auth&&auth.data&&auth.data.user;
+      if(!user)throw new Error(copy.error);
+      var response=await fetch(url);
+      var blob=await response.blob();
+      var sourceFile=new File([blob],"prenda-original.jpg",{type:blob.type||"image/jpeg",lastModified:Date.now()});
+      var cropped=await createCroppedGarmentFile(sourceFile,{zoom:Number(zoom.value),x:Number(x.value),y:Number(y.value)});
+      var newPath=user.id+"/"+crypto.randomUUID()+".jpg";
+      var upload=await supabaseClient.storage.from(wardrobeBucket).upload(newPath,cropped,{contentType:"image/jpeg",upsert:false});
+      if(upload.error)throw upload.error;
+      var update=await supabaseClient.from("wardrobe_items").update({storage_path:newPath}).eq("id",item.id).eq("user_id",user.id).select("id").maybeSingle();
+      if(update.error||!update.data){
+        await supabaseClient.storage.from(wardrobeBucket).remove([newPath]);
+        throw update.error||new Error(copy.error);
+      }
+      var oldPath=item.storage_path;
+      item.storage_path=newPath;
+      wardrobeItems=wardrobeItems.map(function(entry){return entry.id===item.id?Object.assign({},entry,{storage_path:newPath}):entry;});
+      await saveOfflineCache(wardrobeCacheKey(),wardrobeItems);
+      if(oldPath){try{await supabaseClient.storage.from(wardrobeBucket).remove([oldPath]);}catch(_){}}
+      status.textContent=copy.saved;
+      close();
+      await loadWardrobe();
+    }catch(error){status.textContent=(error&&error.message)||copy.error;}
+  });
+  updatePreview();
+}
 function createGarmentCard(item,url){
   var card=document.createElement("div");
   var picture=document.createElement("div");
@@ -251,6 +325,7 @@ function createGarmentCard(item,url){
   var summary=document.createElement("summary");
   var popover=document.createElement("div");
   var edit=document.createElement("button");
+  var crop=document.createElement("button");
   var remove=document.createElement("button");
   card.className="item-card";
   card.dataset.id=item.id;
@@ -267,6 +342,11 @@ function createGarmentCard(item,url){
   image.alt="Prenda de tu armario";
   image.loading="lazy";
   picture.append(image);
+  picture.tabIndex=0;
+  picture.setAttribute("role","button");
+  picture.setAttribute("aria-label","Recortar foto");
+  picture.addEventListener("click",function(){openSavedGarmentCropper(item,image.src||url);});
+  picture.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();openSavedGarmentCropper(item,image.src||url);}});
   actions.className="item-actions";
   menu.className="item-menu";
   summary.textContent="⋯";
@@ -276,10 +356,14 @@ function createGarmentCard(item,url){
   edit.className="edit-item";
   edit.textContent="Editar información";
   edit.addEventListener("click",function(event){event.preventDefault();menu.removeAttribute("open");openGarmentEditor(item);});
+  crop.type="button";
+  crop.className="crop-item";
+  crop.textContent=savedCropCopy().title;
+  crop.addEventListener("click",function(event){event.preventDefault();menu.removeAttribute("open");openSavedGarmentCropper(item,image.src||url);});
   remove.type="button";
   remove.className="delete-item";
   remove.textContent="Eliminar prenda";
-  popover.append(edit,remove);
+  popover.append(edit,crop,remove);
   menu.append(summary,popover);
   actions.append(menu);
   card.append(picture,actions);
@@ -312,12 +396,13 @@ function loadCropImage(file){
     image.src=url;
   });
 }
-async function createCroppedGarmentFile(file){
+async function createCroppedGarmentFile(file,settings){
+  settings=settings||{};
   var image=await loadCropImage(file);
   var targetWidth=1200,targetHeight=900;
-  var zoom=Number(document.getElementById("garmentCropZoom").value||1);
-  var x=Number(document.getElementById("garmentCropX").value||50)/100;
-  var y=Number(document.getElementById("garmentCropY").value||50)/100;
+  var zoom=Number(settings.zoom!=null?settings.zoom:(document.getElementById("garmentCropZoom").value||1));
+  var x=Number(settings.x!=null?settings.x:(document.getElementById("garmentCropX").value||50))/100;
+  var y=Number(settings.y!=null?settings.y:(document.getElementById("garmentCropY").value||50))/100;
   var baseScale=Math.max(targetWidth/image.naturalWidth,targetHeight/image.naturalHeight);
   var scale=baseScale*zoom;
   var sourceWidth=Math.min(image.naturalWidth,targetWidth/scale);
