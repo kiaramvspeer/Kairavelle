@@ -197,10 +197,17 @@ loadAccount();
 
 function customOutfitOptionsKey(type){return 'kairavelle-custom-options-'+type+'-'+(window.kairavelleUserId||'local')}
 function customOutfitOptions(type){try{const v=JSON.parse(localStorage.getItem(customOutfitOptionsKey(type))||'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'):[]}catch(_){return[]}}
+function appendCustomOutfitOption(container,type,value){
+  const wrap=document.createElement('span');wrap.dataset.customOption='true';wrap.style.cssText='display:inline-flex;align-items:center;gap:2px';
+  const button=document.createElement('button');button.type='button';button.className='chip';button.textContent=value;
+  const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.className='text-btn';remove.style.cssText='padding:8px;font-size:20px;line-height:1';remove.setAttribute('aria-label',window.t?window.t('Eliminar')+' '+value:'Eliminar '+value);
+  remove.onclick=()=>{const selected=button.classList.contains('selected');const values=customOutfitOptions(type).filter(item=>item!==value);try{localStorage.setItem(customOutfitOptionsKey(type),JSON.stringify(values))}catch(_){return}wrap.remove();if(selected){const fallback=container.querySelector('.chip');if(fallback)fallback.classList.add('selected')}};
+  wrap.append(button,remove);container.appendChild(wrap);return button;
+}
 function renderCustomOutfitOptions(){
   [['occasion','occasionOptions','customOccasion'],['style','styleOptions','customStyle']].forEach(([type,containerId,inputId])=>{
     const container=document.getElementById(containerId);container.querySelectorAll('[data-custom-option]').forEach(button=>button.remove());
-    customOutfitOptions(type).forEach(value=>{const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.customOption='true';button.textContent=value;container.appendChild(button)});
+    customOutfitOptions(type).forEach(value=>appendCustomOutfitOption(container,type,value));
   });
 }
 function saveCustomOutfitOption(type,containerId,inputId){
@@ -208,7 +215,7 @@ function saveCustomOutfitOption(type,containerId,inputId){
   if(!value)return;
   const container=document.getElementById(containerId),normalize=x=>x.trim().toLocaleLowerCase();
   let button=[...container.querySelectorAll('.chip')].find(b=>normalize(b.textContent)===normalize(value));
-  if(!button){const values=customOutfitOptions(type);values.push(value);try{localStorage.setItem(customOutfitOptionsKey(type),JSON.stringify(values.slice(-100)))}catch(_){}button=document.createElement('button');button.type='button';button.className='chip';button.dataset.customOption='true';button.textContent=value;container.appendChild(button)}
+  if(!button){const values=customOutfitOptions(type);values.push(value);try{localStorage.setItem(customOutfitOptionsKey(type),JSON.stringify(values.slice(-100)))}catch(_){}button=appendCustomOutfitOption(container,type,value)}
   container.querySelectorAll('.chip').forEach(b=>b.classList.toggle('selected',b===button));input.value='';
 }
 [['occasion','occasionOptions','customOccasion'],['style','styleOptions','customStyle']].forEach(([type,containerId,inputId])=>{
