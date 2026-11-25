@@ -744,6 +744,49 @@ function clearOutfitPreviewUrls(){}
 async function loadOutfitPhoto(garment){if(!garment.storage_path)return null;const cached=outfitPhotoCache.get(garment.storage_path);if(cached)return{...garment,url:cached};let task=outfitPhotoLoads.get(garment.storage_path);if(!task){task=(async()=>{try{const {data,error}=await supabaseClient.storage.from(wardrobeBucket).download(garment.storage_path);if(error||!data)return null;const url=URL.createObjectURL(data);outfitPhotoCache.set(garment.storage_path,url);outfitPreviewUrls.push(url);return url}catch(_){return null}finally{outfitPhotoLoads.delete(garment.storage_path)}})();outfitPhotoLoads.set(garment.storage_path,task)}const url=await task;return url?{...garment,url}:null}
 async function loadOutfitPreviewImages(garments){const results=await Promise.all(garments.map(loadOutfitPhoto));return results.filter(Boolean)}
 function outfitTasteKey(){return 'kairavelle-outfit-taste-'+(window.kairavelleUserId||'local')}function readOutfitTaste(){const empty={garments:{},categories:{},colors:{},styles:{},occasions:{}};try{const saved=JSON.parse(localStorage.getItem(outfitTasteKey())||'{}');if(!saved||typeof saved!=='object')return empty;return{garments:saved.garments&&typeof saved.garments==='object'?saved.garments:{},categories:saved.categories&&typeof saved.categories==='object'?saved.categories:{},colors:saved.colors&&typeof saved.colors==='object'?saved.colors:{},styles:saved.styles&&typeof saved.styles==='object'?saved.styles:{},occasions:saved.occasions&&typeof saved.occasions==='object'?saved.occasions:{}}}catch(_){return empty}}function saveOutfitTaste(taste){try{localStorage.setItem(outfitTasteKey(),JSON.stringify(taste))}catch(_){}}function tasteWords(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/[|,]/).map(word=>word.trim()).filter(Boolean)}function recordOutfitTaste(outfit,amount=1){if(!outfit?.garments?.length)return;const taste=readOutfitTaste(),add=(group,key)=>{if(!key)return;taste[group][key]=Math.min(6,(taste[group][key]||0)+amount)};outfit.garments.forEach(item=>{add('garments',String(item.id||''));add('categories',String(item.category||'').toLowerCase());tasteWords(item.color).forEach(color=>add('colors',color))});add('styles',String(outfit.style||'').toLowerCase());add('occasions',String(outfit.occasion||'').toLowerCase());saveOutfitTaste(taste)}function outfitTasteScore(item,style='',occasion=''){const taste=readOutfitTaste(),id=String(item?.id||''),category=String(item?.category||'').toLowerCase(),styleKey=String(style||'').toLowerCase(),occasionKey=String(occasion||'').toLowerCase();let score=(taste.garments[id]||0)*2.5+(taste.categories[category]||0)*0.8+(taste.styles[styleKey]||0)*0.55+(taste.occasions[occasionKey]||0)*0.35;tasteWords(item?.color).forEach(color=>{score+=(taste.colors[color]||0)*0.45});return Math.min(score,13)}
+
+const outfitStyleRules=[
+  {match:/urbano|street/,prefer:/oversize|sudadera|hoodie|cargo|jean|denim|chaqueta|casaca|zapatilla|tenis|gorra|polo|camiseta/,avoid:/traje|taco|encaje|perla/,layer:/chaqueta|casaca|sudadera/},
+  {match:/elegante/,prefer:/blusa|camisa|pantalon|falda|vestido|traje|blazer|chaqueta|abrigo|botin|bota|zapato|taco|saten|seda/,avoid:/sudadera|short|deport|logo grande|chancla/,layer:/blazer|chaqueta|abrigo/},
+  {match:/clasico/,prefer:/camisa|blusa|pantalon|falda|vestido|traje|cardigan|chaqueta|mocasin|botin|cuero|algodon|lana/,avoid:/neon|muy oversize|deport/,layer:/cardigan|chaqueta|chaleco/},
+  {match:/minimal/,prefer:/liso|simple|polo|camiseta|camisa|pantalon|falda|vestido|chaqueta|blanco|negro|gris|beige|marron/,avoid:/lentejuela|muchos estampados|neon|logo grande/,layer:/chaqueta|cardigan/},
+  {match:/deport/,prefer:/deport|sudadera|buzo|legging|short|polo|camiseta|zapatilla|tenis|gorra|licra|algodon/,avoid:/taco|traje|vestido formal|saten|encaje/,layer:/sudadera|chaqueta deportiva/},
+  {match:/bohem/,prefer:/fluido|holgado|flor|bordado|tejido|crochet|calado|falda|vestido|blusa|chaleco|panuelo|sandalia|tierra|beige|marron/,avoid:/traje rigido|deport/,layer:/chaleco|cardigan|panuelo/},
+  {match:/romant/,prefer:/rosa|pastel|flor|encaje|volante|lazo|falda|vestido|blusa|cardigan|balerina|taco/,avoid:/cargo|deport|sudadera grande/,layer:/cardigan|chaqueta corta/},
+  {match:/kawaii/,prefer:/pastel|rosa|lila|celeste|lazo|corazon|falda|vestido|cardigan|chaleco|media|panti|zapatilla/,avoid:/traje oscuro|militar/,layer:/cardigan|chaleco/},
+  {match:/vintage/,prefer:/retro|cuadro|flor|pana|denim|falda|vestido|camisa|blusa|cardigan|chaleco|botin|mocasin/,avoid:/neon deportivo|logo moderno/,layer:/cardigan|chaleco|chaqueta/},
+  {match:/preppy/,prefer:/camisa|blusa|polo|falda|pantalon|chaleco|cardigan|blazer|cuadro|mocasin|botin|media/,avoid:/grunge|ropa rota|sudadera grande/,layer:/chaleco|cardigan|blazer|chaqueta/},
+  {match:/grunge|alternativo/,prefer:/negro|gris|cuadro|denim|cuero|oversize|camiseta|polo|camisa|chaqueta|casaca|bota|botin/,avoid:/traje formal|pastel elegante/,layer:/camisa|chaqueta|casaca/},
+  {match:/y2k/,prefer:/crop|top|mini|cargo|denim|brillo|metalico|polo|camiseta|falda|pantalon|chaqueta|zapatilla/,avoid:/traje clasico|abrigo largo/,layer:/chaqueta corta|cardigan/},
+  {match:/casual/,prefer:/polo|camiseta|camisa|blusa|jean|pantalon|falda|vestido|cardigan|chaqueta|zapatilla|botin|algodon|denim/,avoid:/traje gala|lentejuela/,layer:/cardigan|chaqueta|casaca/}
+];
+const outfitOccasionRules=[
+  {match:/dia casual|casual|casa|salida/,prefer:/polo|camiseta|camisa|blusa|jean|pantalon|falda|vestido|zapatilla|botin|cardigan|chaqueta/,avoid:/traje gala|lentejuela/},
+  {match:/trabajo|oficina|entrevista|reunion/,prefer:/camisa|blusa|pantalon|falda|vestido|blazer|chaqueta|mocasin|botin|zapato/,avoid:/short|sudadera|deport|chancla|crop/},
+  {match:/fiesta|cumple|concierto|patria/,prefer:/vestido|falda|blusa|top|pantalon|chaqueta|botin|taco|brillo|estampado/,avoid:/buzo|ropa de ejercicio/},
+  {match:/cita/,prefer:/blusa|camisa|vestido|falda|pantalon|cardigan|chaqueta|botin|zapato|taco/,avoid:/ropa de ejercicio|sudadera deportiva/},
+  {match:/evento formal|boda|graduacion|ceremon|gala|funeral/,prefer:/traje|vestido|camisa|blusa|pantalon|falda|blazer|abrigo|zapato|taco|botin/,avoid:/short|sudadera|zapatilla deportiva|chancla|crop|logo grande/},
+  {match:/ejercicio|gimnasio|deporte/,prefer:/deport|sudadera|buzo|legging|short|polo|camiseta|zapatilla|tenis|licra/,avoid:/taco|traje|vestido|falda formal|blazer/},
+  {match:/playa|piscina/,prefer:/short|falda|vestido|top|polo|camiseta|sandalia|ligero/,avoid:/abrigo|chompa|guante|bota pesada/},
+  {match:/viaje/,prefer:/comodo|polo|camiseta|pantalon|jean|cardigan|chaqueta|zapatilla|botin/,avoid:/taco alto|traje rigido/}
+];
+function outfitContextRuleScore(item,style='',occasion='',place=''){
+  const clean=value=>String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const words=clean([item?.category,item?.name,item?.material,item?.fit,item?.pattern,item?.color].filter(Boolean).join(' '));
+  const styleText=clean(style),occasionText=clean(occasion+' '+place);
+  let score=0;
+  outfitStyleRules.filter(rule=>rule.match.test(styleText)).forEach(rule=>{if(rule.prefer.test(words))score+=11;if(rule.avoid.test(words))score-=13});
+  outfitOccasionRules.filter(rule=>rule.match.test(occasionText)).forEach(rule=>{if(rule.prefer.test(words))score+=13;if(rule.avoid.test(words))score-=17});
+  return score;
+}
+function outfitPreferredLayer(style='',occasion=''){
+  const clean=value=>String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const styleText=clean(style),occasionText=clean(occasion);
+  const rule=outfitStyleRules.find(entry=>entry.match.test(styleText));
+  if(/evento formal|trabajo|oficina|entrevista|boda|graduacion/.test(occasionText))return /blazer|chaqueta|abrigo|cardigan/;
+  return rule?.layer||/chaqueta|casaca|cardigan|abrigo/;
+}
+
 function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasion='',place='',weather='templado',month='',season=''){
   const clean=value=>String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const details=item=>clean([item.category,item.name,item.material,item.fit,item.pattern].filter(Boolean).join(' '));
@@ -752,7 +795,7 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
   const neutral=new Set(['negro','blanco','gris','beige','azul','denim','marron']);
   const context=clean(style+' '+occasion+' '+place+' '+month+' '+season);
   const weatherScore=item=>{const words=details(item);if(weather==='frio'){if(/abrigo|chaqueta|casaca|cardigan|chompa|sueter|sudadera|bufanda|chalina|guante|miton|panti|media|manga larga|botin|bota|pantalon|jean/.test(words))return 8;if(/short|sandalia|top/.test(words))return -6}if(weather==='calor'){if(/short|falda|vestido|top|polo|camiseta|camisa|sandalia/.test(words))return 7;if(/abrigo|chaqueta|casaca|cardigan|chompa|sueter|sudadera|bufanda|chalina|guante|miton|panti|media|bota/.test(words))return -8}if(/chaqueta|casaca|cardigan|pantalon|jean|camisa|blusa|zapatilla/.test(words))return 2;return 0};
-  const contextScore=item=>{const words=details(item);let score=0;if(/formal|elegante|trabajo|graduacion|ceremon/.test(context)&&/camisa|blusa|traje|vestido|falda|chaqueta|abrigo|botin|zapato/.test(words))score+=5;if(/fiesta|cumple|cita|patria/.test(context)&&/vestido|falda|blusa|top|chaqueta|botin|taco/.test(words))score+=4;if(/ejercicio|deportivo/.test(context)&&/deport|sudadera|zapatilla|tenis|short/.test(words))score+=6;if(/playa/.test(context)&&/short|vestido|top|sandalia/.test(words))score+=5;if(/casual|urbano|street|casa|viaje|ciudad/.test(context)&&/jean|pantalon|polo|camiseta|chaqueta|zapatilla/.test(words))score+=3;return score};
+  const contextScore=item=>outfitContextRuleScore(item,style,occasion,place);
   const colorsWork=(firstItem,secondItem)=>{
     const firstColors=colorsOf(firstItem),secondColors=colorsOf(secondItem);
     if(!firstColors.length||!secondColors.length||firstColors.includes('otro')||secondColors.includes('otro'))return true;
@@ -802,8 +845,12 @@ function chooseOutfit(candidates,index,palette=[],preferredId='',style='',occasi
     if(top)picked.unshift(top);
   }else{
     const topWords=details(top);
-    const layers=outerLayer.concat(topWords.includes('camisa')?[]:softLayer).filter(item=>safeLayer(item,top)&&!picked.includes(item));
-    const useLayer=preferredIsLayer||(weather==='frio'?layers.length>0:(weather==='calor'?false:((index+layers.length)%3===0)));
+    const preferredLayerPattern=outfitPreferredLayer(style,occasion);
+    const structuredKnit=/preppy|clasico|kawaii|vintage|bohem/.test(clean(style))?knitVest.filter(item=>safeLayer(item,top)):[];
+    const softChoices=topWords.includes('camisa')&&!/grunge|alternativo|urbano|street/.test(clean(style))?[]:softLayer;
+    const layers=[...outerLayer,...structuredKnit,...softChoices].filter(item=>safeLayer(item,top)&&!picked.includes(item)).sort((a,b)=>Number(preferredLayerPattern.test(details(b)))-Number(preferredLayerPattern.test(details(a))));
+    const styleLikesLayers=/preppy|grunge|alternativo|urbano|street|bohem|vintage|clasico|elegante/.test(clean(style));
+    const useLayer=preferredIsLayer||(weather==='frio'?layers.length>0:(weather==='calor'?false:(styleLikesLayers?layers.length>0:((index+layers.length)%3===0))));
     const layer=useLayer?(preferredIsLayer&&safeLayer(preferred,top)?preferred:(layers.length?layers[(index+7)%layers.length]:null)):null;
     if(layer&&!picked.includes(layer))picked.push(layer);
   }
